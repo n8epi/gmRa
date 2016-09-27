@@ -134,7 +134,7 @@ test_covertree3D = function() {
 
   ct = covertree(data);
 
-  sc = 1;
+  sc = 0;
   ind = ct$getIndices(sc);
   ch = ct$ch$get(ind,sc);
 
@@ -153,7 +153,7 @@ test_covertree3D = function() {
   edgeDataMG = matrix(0,2*length(G$E),3);
   cnt = 0;
   for (a in G$E) {
-    index = scan(text=a,sep=",");
+    index = scan(text=a,sep=","); # Prints out warnings about how many items are scanned
     i = index[1];
     j = index[2];
     edgeDataMG[2*cnt+1,] = data[ind[i],];
@@ -214,11 +214,27 @@ test_covertree3D = function() {
   rgl.pop('lights');
   light3d(theta=45,phi=45,ambient='white',diffuse='white');
 
+  cols = rainbow(256)
+
   print("Plotting the GMRA approximations...");
   open3d();
   par3d("windowRect" = c(0,0,1000,1000));
-  plot3d(dfGMRA,type="s",radius=0.05,col='gray');
+  #plot3d(dfGMRA,type="s",radius=0.05,col='gray');
+  plot3d(dfGMRA,type="s",radius=0.05,col=cols[cut(256*dfGMRA$x,256)]);
   rgl.pop('lights');
   light3d(theta=45,phi=45,ambient='white',diffuse='white');
 
+  f = gmra$regression(matrix(dfGMRA$x,nrow=length(dfGMRA$x),ncol=1))
+  regVals = apply(dfGMRA,1,f)
+
+  print("Plotting the GMRA approximations with linear regression test...");
+  open3d();
+  par3d("windowRect" = c(0,0,1000,1000));
+  #plot3d(dfGMRA,type="s",radius=0.05,col='gray');
+  plot3d(dfGMRA,type="s",radius=0.05,col=cols[cut(256*regVals,256)]);
+  rgl.pop('lights');
+  light3d(theta=45,phi=45,ambient='white',diffuse='white');
+
+
+  print(c('Sum of Squares Regression Error:', sum((dfGMRA$x-regVals)^2)))
 }

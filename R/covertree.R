@@ -16,6 +16,7 @@ distIndex = function(i,j,n) {
 #' Cover Tree
 #'
 #' TODO: Implement insert, remove, and tree balancing
+#' TODO: Accommodate data request model in order to deal with large datasets
 #' @param data Matrix of data in rows
 #' @param scalefactor Zooming factor for the cover tree
 #' @param metric Function used to compute distances
@@ -38,7 +39,7 @@ covertree = function(data,scalefactor=2,metric=dist2) {
   # TODO: Make this robust to redundant data -- either it is not inserted or loops infinitely
   for (i in 2:dim(data)[1]) {
 
-    #print(c("Processing node",i));
+    print(c("Processing node",i));
     dat = data[i,];
     di = ct$dist(ct$root,dat);
 
@@ -59,9 +60,12 @@ covertree = function(data,scalefactor=2,metric=dist2) {
         parent = 1;
         parentSc = sc;
 
-        while (length(Qk1) > 0) {
+        duplicate_flag = FALSE
+
+        while (length(Qk1) > 0 && !duplicate_flag) {
           # Loop through the cover to identify any potential parent
           # Note that this is wasteful
+          # print('In the Qk1 loop...')
           for (j in 1:length(Qk)) {
             d2j=ct$dist(dat,data[Qk[j],])
             if ( d2j < scFac ) {
@@ -83,33 +87,48 @@ covertree = function(data,scalefactor=2,metric=dist2) {
             if (d2j < scFac) {
               Qk1 = c(Qk1,Qk[j]);
             }
+            if (d2j == 0) {
+              #print(c(i,' is duplicate of ',Qk[j],' with index ', j))
+              duplicate_flag = TRUE
+            }
           }
 
           # Check the children of the cover
           #print(c("Right before traceback...",Qk,sc));
           children = ct$ch$get(Qk,sc);
           #print(c("Children from get: ",children));
-          for (j in 1:length(children)) {
-            #print("In the check children loop:");
-            #print(children[l]);
-            d2j = ct$dist(dat,data[children[j],]);
-            if (d2j < scFac) {
-              Qk1 = c(Qk1,children[j]);
+          if(length(children)>0) {
+            for (j in 1:length(children)) {
+              #print("In the check children loop:");
+              #print(children[l]);
+              d2j = ct$dist(dat,data[children[j],]);
+              if (d2j < scFac) {
+                Qk1 = c(Qk1,children[j]);
+              }
+              if (d2j == 0) {
+                #print(c(i,' is duplicate of ',children[j],' with index ',j))
+                duplicate_flag = TRUE
+              }
             }
+          }
+
+        }
+
+        # Only add if we have not duplicated another point...
+        if (!duplicate_flag) {
+          # Update the children index
+          ct$ch$put(parent,parentSc,i);
+
+          # Update the coarsest and finest scale if necessary
+          if (parentSc < ct$csc) {
+            ct$csc = parentSc;
+          }
+
+          if (ct$fsc < parentSc) {
+            ct$fsc = parentSc;
           }
         }
 
-        # Update the children index
-        ct$ch$put(parent,parentSc,i);
-
-        # Update the coarsest and finest scale if necessary
-        if (parentSc < ct$csc) {
-          ct$csc = parentSc;
-        }
-
-        if (ct$fsc < parentSc) {
-          ct$fsc = parentSc;
-        }
 
         #print(c("Added node",i,parent,parentSc));
       }

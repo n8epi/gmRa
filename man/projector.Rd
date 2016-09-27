@@ -4,14 +4,16 @@
 \alias{projector}
 \title{Orthogonal projection}
 \usage{
-projector(A, dim)
+projector(X, mu, dim)
 }
 \arguments{
-\item{A}{Symmetric matrix}
+\item{A}{matrix with data in rows}
 
-\item{dim}{Number of eigenvectors to retain}
+\item{The}{shift value to be subtracted from each row of X}
+
+\item{The}{rank of the projection to be extracted}
 }
 \description{
-TODO: Usage of eigen is expensive; fast option needed
+TODO: Implement randomized low-rank SVD approach
 }
 

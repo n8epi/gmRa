@@ -15,5 +15,6 @@ covertree(data, scalefactor = 2, metric = dist2)
 }
 \description{
 TODO: Implement insert, remove, and tree balancing
+TODO: Accommodate data request model in order to deal with large datasets
 }
 
